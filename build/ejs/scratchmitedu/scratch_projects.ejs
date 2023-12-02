@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="<%= process.env.staticurl %>/css/waline.css" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>
+		<%= process.env.siteneme %>
+	</title>
+	<link rel="shortcut icon" href="<%= process.env.staticurl %>/img/siteicon.png">
+	<meta name="description" content="<%= process.env.slogan %>">
+	<meta name="keyword" content="<%= process.env.slogan %>">
+
+	<link rel="stylesheet" href="<%= process.env.staticurl %>/layui/css/layui.css">
+
+
+	<link rel="stylesheet" href="<%= process.env.staticurl %>/css/main.css">
+	<% include ../linkfile.ejs %>
+
+<%- process.env.includecode %></head>
+
+
+
+<body class="mdui-theme-accent-blue mdui-loaded mdui-appbar-with-toolbar">
+	<% include ../hand.ejs %>
+		<div class="mdui-container" style="margin:40px auto">
+			<div class="mdui-row">
+				<div class="mdui-typo-display-1">Scratch</div><!--<div class="mdui-typo-title">最新项目</div>-->
+				<div class="mdui-textfield mdui-textfield-floating-label">
+					<label class="mdui-textfield-label">回车搜索</label>
+					<input class="mdui-textfield-input " type="text" id='scratch_search_txt'>
+				</div> <button class="mdui-btn mdui-color-theme-accent mdui-ripple md3botton" style="margin:0px 0px 0px 10px;"
+					onclick="Scratch_Search('trending')">搜索最新</button>
+					<button class="mdui-btn mdui-color-theme-accent mdui-ripple md3botton" style="margin:0px 0px 0px 10px;"
+					onclick="Scratch_Search('popular')">搜索最热</button>
+				<div id="scratch_box">
+					<div class="mdui-tab mdui-color-theme" mdui-tab id="scratch_type">
+						<a class="mdui-ripple md3botton" onclick="Scratch('trending');scratch_type='trending'" 
+							id="scratch_tab_new">
+							<i class="mdui-icon material-icons">fiber_new</i>
+							<label>最新</label>
+						</a>
+						<a class="mdui-ripple md3botton" onclick="Scratch('popular');scratch_type='popular'" 
+							id="scratch_tab_hot">
+							<i class="mdui-icon material-icons">whatshot</i>
+							<label>最热</label>
+						</a>
+
+					</div>
+					<div class="mdui-row" id="scratch_projects"></div>
+					<div style="display:flex; justify-content:center;">
+						<div id="scratch_change_page"></div>
+					</div>
+				</div>
+			
+			</div>
+		</div>
+
+</body>
+
+<script type="text/javascript" src="<%= process.env.staticurl %>/js/jquery.min.js"></script>
+<script type="text/javascript" src="<%= process.env.staticurl %>/layui/layui.all.js"></script>
+
+
+
+<script>
+	var laypage = layui.laypage, layer = layui.layer;
+	var scratch_type = 'trending';
+
+	function Scratch(thetype) {
+		laypage.render({
+			elem: 'scratch_change_page'
+			, count: <%= scratch_count %>
+	, limit: 8
+			, theme: '#448aff'
+			, jump: function (obj, first) {
+				$.ajax({
+					'url': 'https://scratch-api.190823.xyz/explore/projects',
+					"data": {"limit":'16','offset':"0","language":'en',"mode":thetype,"q":'*'},
+					'type': 'GET',
+					'success': function (d) {
+						if (d.length) {
+							$("#scratch_projects").html("");
+							for (var i = 0; i < d.length; i++) {
+								
+								
+								$("#scratch_projects").append(`
+								<div class="mdui-col-md-3 mdui-col-sm-6 mdui-col-xs-12" style="margin:5px 0px 5px 0px;">
+<div class="">
+    <div class="mdui-card mdui-hoverable" style='border-radius: 15px 15px 15px 15px;'>
+        <a href="/proxy/play?id=${d[i].id}" target="_self" ondragstart="return false">
+            <div class="mdui-card-media mdui-ripple mdui-hoverable" style='border-radius: 15px 15px 15px 15px;'>
+                <img src="https://scratch-cdn-workers.190823.xyz/get_image/project/${d[i].id}_480x360.png" style="pointer-events: none;" />
+                <div class="mdui-card-media-covered mdui-card-media-covered-gradient">
+                    <div class="mdui-card-primary">
+                        <div class="mdui-card-primary-title substr">${d[i].title}</div>
+						<div class="mdui-card-primary-subtitle substr">${d[i].instructions}</div>
+                    </div>
+                </div>
+            </div>   </a>
+            <div class="mdui-card-header mdui-ripple" onclick="window.open('/user?id=${d[i].author.id}','_self')" >
+                <img class="mdui-card-header-avatar" src="https://scratch-cdn-workers.190823.xyz/get_image/user/${d[i].author.id}_32x32.png" />
+                <div class="mdui-card-header-title">${d[i].author.username}</div>
+                <div class="mdui-card-header-subtitle">官网ID${d[i].author.id}</div>
+            </div>
+     
+    </div>
+</div></div>	
+						`);
+							} document.getElementById("scratch_type").classList.remove('mdui-hidden');
+						} else {
+							mdui.snackbar({ buttonText: '关闭', message: "无满足条件的作品" });
+						}
+					}
+				});
+			}
+	});
+	}
+
+	Scratch('trending')
+
+	$('#scratch_search_txt').keydown(function (e) {
+		if (e.keyCode == 13) { Scratch_Search(); }
+	});
+	function Scratch_Search(thetype) {
+		var txt = $("#scratch_search_txt").val();
+		if (txt == '') { $("#scratch_search_txt").focus(); return }
+
+		$.ajax({	'url': 'https://scratch-api.190823.xyz/explore/projects',
+					"data": {"limit":'16','offset':"0","language":'en',"mode":thetype,"q":txt},
+					'type': 'GET',
+					'success': function (d) {
+						if (d.length) {
+							$("#scratch_projects").html("");
+							for (var i = 0; i < d.length; i++) {
+								
+								
+								$("#scratch_projects").append(`
+								<div class="mdui-col-md-3 mdui-col-sm-6 mdui-col-xs-12" style="margin:5px 0px 5px 0px;">
+<div class="">
+    <div class="mdui-card mdui-hoverable" style='border-radius: 15px 15px 15px 15px;'>
+        <a href="/proxy/play?id=${d[i].id}" target="_self" ondragstart="return false">
+            <div class="mdui-card-media mdui-ripple mdui-hoverable" style='border-radius: 15px 15px 15px 15px;'>
+                <img src="https://scratch-cdn-workers.190823.xyz/get_image/project/${d[i].id}_480x360.png" style="pointer-events: none;" />
+                <div class="mdui-card-media-covered mdui-card-media-covered-gradient">
+                    <div class="mdui-card-primary">
+                        <div class="mdui-card-primary-title substr">${d[i].title}</div>
+						<div class="mdui-card-primary-subtitle substr">${d[i].instructions}</div>
+                    </div>
+                </div>
+            </div>   </a>
+            <div class="mdui-card-header mdui-ripple" onclick="window.open('/user?id=${d[i].author.id}','_self')" >
+                <img class="mdui-card-header-avatar" src="https://scratch-cdn-workers.190823.xyz/get_image/user/${d[i].author.id}_32x32.png" />
+                <div class="mdui-card-header-title">${d[i].author.username}</div>
+                <div class="mdui-card-header-subtitle">官网ID${d[i].author.id}</div>
+            </div>
+     
+    </div>
+</div></div>	
+						`);
+					} document.getElementById("scratch_type").classList.add('mdui-hidden');
+					document.getElementById("scratch_change_page").innerHTML = `<button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent" onclick="Scratch(scratch_type)">取消搜索</button>`;
+				} else {
+					mdui.snackbar({ buttonText: '关闭', message: "无满足条件的作品" });
+				}
+			}
+		});
+	}
+
+
+
+</script>
+
+</html>

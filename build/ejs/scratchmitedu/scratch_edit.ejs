@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scratch编程 - <%= process.env.siteneme %></title>
+    <link rel="shortcut icon" href="<%= process.env.staticurl %>/img/siteicon.png"><% include ../linkfile.ejs %>
+<%- process.env.includecode %></head>
+
+<body>
+ 
+
+  <script type="text/javascript">
+    var _scratch_logo= '<%= process.env.staticurl %>/img/scratch-logo.png';
+  </script>
+
+</body>
+<script type="text/javascript" src="<%= process.env.staticurl %>/js/scratch.min.js"></script>
+</html>
+<script>qiniuurl='<%= process.env.qiniuurl %>'
+this.assetHost = '<%= process.env.qiniuurl %>/material/asset'</script>

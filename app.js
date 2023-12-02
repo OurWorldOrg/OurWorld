@@ -206,6 +206,11 @@ app.use("/admin", router_admin);
 //scratch路由
 var router_scratch = require("./server/router_scratch.js");
 app.use("/scratch", router_scratch);
+
+
+//scratch代理路由
+var router_scratch = require("./server/router_scratch_proxy.js");
+app.use("/proxy", router_scratch);
 //api路由
 var apiserver = require("./server/router_api.js");
 app.use("/api", apiserver);

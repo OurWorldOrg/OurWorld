@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+
+<head>
+	<meta name="site" content="https://wuyuan.dev" />
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="<%= process.env.staticurl %>/css/waline.css" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>Scratch作品 - <%= process.env.siteneme %>
+	</title>
+	<link rel="shortcut icon" href="<%= process.env.staticurl %>/img/siteicon.png">
+	<meta name="description" content="是  在<%= process.env.siteneme %>上的作品">
+	<meta name="keyword" content="<%= process.env.slogan %>">
+	<link rel="stylesheet" type="text/css" href="<%= process.env.staticurl %>/layui/css/layui.css">
+	<link type="text/css" rel="stylesheet" href="<%= process.env.staticurl %>/css/main.css" />
+	<link rel="stylesheet" type="text/css" href="<%= process.env.staticurl %>/css/scratch_play.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"
+		integrity="sha512-9DNXrSjk17bU9MUbRp3IjwcWe46V8FaGA062PFbryPUAEQVRbz4jiZP6FW0AdbqEGtMYBDWnul3eiGBMJOQajA=="
+		crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css"
+		integrity="sha512-ygEyjMC6rqnzJqWGjRTJUPYMEs9JUOm3i7OWUS9CgQ4XkBUvMsgCS1I8JqavidQ2ClHcREB7IbA2mN08+r9Elg=="
+		crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<% include ../linkfile.ejs %>
+<%- process.env.includecode %></head>
+	
+<body class="mdui-theme-accent-blue mdui-loaded mdui-appbar-with-toolbar">
+	<% include ../hand.ejs %>
+		<div class="mdui-container" style="margin:40px auto">
+			<div>
+				<div class="mdui-card mdui-hoverable md3botton">
+					<div class="layui-row">
+						<div id="container_play" style="display: none;">
+							<div id="wrapper"> <canvas id="stage"></canvas>
+								<div id="monitors"></div>
+								<div id="asking-box"> <label id="question" for="answer">Question</label> <input
+										type="text" id="answer"> </div>
+							</div>
+						</div>
+					</div>
+					<span id="loading-progress" style="display: none;"></span>
+					<div id="container_main">
+						<div id="project_slt"
+							style="background-image: url(<%= process.env.qiniuurl%>/scratch_slt/);">
+							<div class="green-flag-box mdui-ripple mdui-valign" style="width: 100%;height: 100%;">
+								<div class="mdui-center">
+									<img class="green-flag"
+										src="<%= process.env.staticurl %>/scratchstatic/assets/2e0c4790f8f9cf28e3c346b9cef0fcb6.svg">
+									<div style="font-size: small; width: 88px;text-align: center;">点击运行</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="layui-row scratch-player-bottom">
+						<button id="greenFlag" class="mdui-btn mdui-color-theme-accent mdui-ripple md3botton"
+							onclick="greenFlag()" style="display: none;">开始</button>
+						<button id="stopAll" class="mdui-btn mdui-color-red mdui-ripple md3botton" onclick="stopAll()"
+							style="display: none;">停止</button>
+					</div>
+				</div>
+			</div><br />
+			<div class="mdui-card-primary-title">
+			
+			</div>
+			<div class="mdui-card-primary-subtitle" style="word-wrap:break-word;">
+				
+			</div>
+			<a href="/user?id=">
+				<div class="mdui-card  mdui-hoverable mdui-ripple  md3botton">
+					<div class="mdui-card-header"> <img class="mdui-card-header-avatar"
+							src="<%= process.env.qiniuurl%>/user/.png" />
+						<div class="mdui-card-header-title">
+							
+						</div>
+						<div class="mdui-card-header-subtitle"></div>
+					</div>
+				</div>
+			</a>
+			<br />
+			<div class="mdui-chip"> <span class="mdui-chip-icon"> <i class="mdui-icon material-icons">&#xe8a6;</i>
+				</span> <span class="mdui-chip-title">
+					浏览量: <span class="waline-pageview-count" /> </span> </div>
+
+			<div id="waline-users"></div> <button class="mdui-btn mdui-ripple  copylink  md3botton"  >复制链接</button>
+			<button class="mdui-btn mdui-ripple md3botton" onclick='location.href=("/scratch/edit#")'>改编</button>
+			<div class="social-share"></div>
+			<div class="mdui-dialog" id="qrcode">
+				<div class="mdui-dialog-title">反馈 </div>
+				<div class="wechat-qrcode">
+				</div>
+				<div class="mdui-dialog-actions">
+					<button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭</button>
+				</div>
+			</div>
+
+
+
+			<div id="waline"></div>
+			<script type="module">
+				import { init } from '<%= process.env.staticurl %>/js/waline-c.mjs';
+				init({
+					el: '#waline',
+					serverURL: '<%= process.env.WalineServerURL %>',
+					path: 'project-',
+					copyright: false,
+					reaction: true, // 开启反应
+					pageview: true, // 浏览量统计
+					locale: {
+						reactionTitle: "这个作品怎么样？"
+					},
+					emoji: [
+						'//unpkg.com/@waline/emojis@1.1.0/weibo',
+						'//unpkg.com/@waline/emojis@1.1.0/bilibili',
+					],
+					dark: 'body[dark]',
+				});
+			</script>
+			<input type="hidden" id="works_id" value="">
+</body>
+
+<script type="text/javascript" src="<%= process.env.staticurl %>/js/jquery.min.js"></script>
+<script type="text/javascript" src="<%= process.env.staticurl %>/layui/layui.all.js"></script>
+<script type="text/javascript" src="<%= process.env.staticurl %>/js/scratch.vm.min.js"></script>
+<script type="text/javascript" src="<%= process.env.staticurl %>/js/clipboard.min.js"></script>
+<script type="text/javascript" src="<%= process.env.staticurl %>/js/main.js"></script>
+<script>
+
+</script>
+<script type="text/javascript" src="<%= process.env.staticurl %>/js/scratch_play.js"></script>
+
+</html>
+<script>
+_pid = "934003545?token=1701501868_337effe58cbf3fc4b41bd0dd9821281a5a6209f405c1e633c856b52393563c3fea1647da1bc30be66126cb1fc14ab13859358afd3cdbc913a6fe2cbe056313fd";
+</script>
+<script>
+//	_pid = '929617724';
+</script>
+<script>qiniuurl='<%= process.env.qiniuurl %>'</script>

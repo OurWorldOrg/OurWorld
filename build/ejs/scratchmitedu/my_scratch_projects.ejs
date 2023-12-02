@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>我的作品 - <%= process.env.siteneme %>
+	</title>
+	<link rel="shortcut icon" href="<%= process.env.staticurl %>/img/siteicon.png">
+	<meta name="description" content="<%= process.env.slogan %>">
+	<meta name="keyword" content="<%= process.env.slogan %>">
+
+	<link rel="stylesheet" type="text/css" href="<%= process.env.staticurl %>/layui/css/layui.css">
+	<link type="text/css" rel="stylesheet" href="<%= process.env.staticurl %>/css/main.css" />
+
+	<% include ../linkfile.ejs %>
+<%- process.env.includecode %></head>
+
+<body class="mdui-theme-accent-blue mdui-loaded mdui-appbar-with-toolbar">
+	<% include ../hand.ejs %>
+		<div class="mdui-container">
+			<div class="mdui-tab mdui-color-theme" mdui-tab>
+				<a class="mdui-ripple md3botton" onclick="project_state0()" ><i
+						class="mdui-icon material-icons">lock_outline</i>未分享的作品</a>
+				<a class="mdui-ripple md3botton" onclick="project_state1()" ><i
+						class="mdui-icon material-icons">share</i>已分享的作品</a>
+				<a class="mdui-ripple md3botton" onclick="project_state2()" ><i
+						class="mdui-icon material-icons">star</i>精选作品</a>
+			</div>
+			<div class="mdui-row" style="margin-top: 10px;" id="box_projects" ondragstart="return false">
+			</div>
+			<div style="display:flex; justify-content:center;">
+				<div id="layui_change_page"></div>
+			</div>
+		</div>
+
+</body>
+
+<script type="text/javascript" src="<%= process.env.staticurl %>/js/jquery.min.js"></script>
+<script type="text/javascript" src="<%= process.env.staticurl %>/layui/layui.all.js"></script>
+<script type="text/javascript" src="<%= process.env.staticurl %>/js/main.js"></script>
+<script>
+	//翻页加载作品
+	var _laypage = layui.laypage;
+	function loadPage(count, state) {
+		_laypage.render({
+			elem: 'layui_change_page'
+			, count: count
+			, limit: 8
+			, theme: '#3593ff'
+			, curr: 1
+			, jump: function (obj, first) {
+				$.ajax({
+					'url': '/my/getScratchProjects',
+					'type': 'POST',
+					'data': { curr: obj.curr, limit: obj.limit, state: state },
+					'success': function (d) {
+						if (d.length) {
+							$("#box_projects").html("");
+							if (state == 0) {
+								for (var i = 0; i < d.length; i++) {
+									$("#box_projects").append(`
+									<div class="mdui-col-md-3 mdui-col-sm-6 mdui-col-xs-12" style="margin:5px 0px 5px 0px;">
+<div class='mdui-hoverable md3botton' >
+				<div class="mdui-card mdui-ripple  md3botton">
+						<div class="mdui-card-media">
+							<img src="<%= process.env.qiniuurl%>/scratch_slt/${d[i].id}"
+								style="pointer-events: none;" />
+							<div class="mdui-card-media-covered mdui-card-media-covered-gradient">
+								<div class="mdui-card-primary">
+									<div class="mdui-card-primary-title">${d[i].title}</div>
+									<div class="mdui-card-primary-subtitle substr"  mdui-tooltip="{content: '${d[i].description}[${d[i].view_count}浏览]', delay: 500}">${d[i].description}[${d[i].view_count}浏览]</div>
+								</div>
+							</div>
+						</div>
+					
+					<div class="mdui-card-actions">
+						<button class="mdui-btn mdui-ripple mdui-ripple-white md3botton" onclick="delProject(this,${d[i].id})">删除</button><button class="mdui-btn mdui-ripple mdui-ripple-white md3botton"
+					onclick="SetScratchProjectDescription(${d[i].id},'${d[i].description}')">修改简介</button>
+		<button class="mdui-btn mdui-ripple mdui-ripple-white md3botton" onclick="shareScratchProject(${d[i].id})">分享</button>
+		<button class="mdui-btn mdui-ripple mdui-ripple-white md3botton" onclick='location.href=("/scratch/edit#${d[i].id}")'>修改</button>
+					</div>
+			
+</div></div>
+			</div>`);
+								};
+							} else {
+								for (var i = 0; i < d.length; i++) {
+									$("#box_projects").append(`
+									<div class="mdui-col-md-3 mdui-col-sm-6 mdui-col-xs-12" style="margin:5px 0px 5px 0px;">
+	<div class='mdui-hoverable md3botton' >
+		<div class="mdui-card mdui-ripple  md3botton" ><a href="/scratch/play?id=${d[i].id}"
+				ondragstart="return false">
+				<div class="mdui-card-media">
+					<img src="<%= process.env.qiniuurl%>/scratch_slt/${d[i].id}" style="pointer-events: none;" />
+					<div class="mdui-card-media-covered mdui-card-media-covered-gradient">
+						<div class="mdui-card-primary">
+							<div class="mdui-card-primary-title">${d[i].title}</div>
+							<div class="mdui-card-primary-subtitle substr"  mdui-tooltip="{content: '${d[i].description}[${d[i].view_count}浏览]', delay: 500}">${d[i].description}[${d[i].view_count}浏览]</div>
+						</div>
+					</div>
+				</div>
+			</a>
+			<div class="mdui-card-actions">
+				<button class="mdui-btn mdui-ripple mdui-ripple-white md3botton" onclick="delProject(this,${d[i].id})">删除
+				</button> <button class="mdui-btn mdui-ripple mdui-ripple-white md3botton"
+					onclick="noshareScratchProject(${d[i].id})">取消分享</button><button class="mdui-btn mdui-ripple mdui-ripple-white md3botton"
+					onclick="SetScratchProjectDescription(${d[i].id},'${d[i].description}')">修改简介</button>
+				<button class="mdui-btn mdui-ripple mdui-ripple-white md3botton"
+					onclick='location.href=("/scratch/edit#${d[i].id}")'>修改</button>
+			</div>
+		</div>
+	</div>
+</div>`);
+								}
+							}
+						} else {
+							$("#box_projects").append(`<div class="layui-col-md12 layui-col-sm12 layui-col-xs12"><div class="is_null">	<a class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent" href="/scratch/edit">创作一个作品</a></div></div>`);
+						}
+					}
+				});
+			}
+		});
+	}
+
+	var state0_count = <%= state0_count %>;
+	var state1_count = <%= state1_count %>;
+	var state2_count = <%= state2_count %>;
+	//未分享的作品
+	function project_state0() {
+		$("#box_projects").html("");
+		loadPage(state0_count, 0);
+	}
+	//已分享的作品
+	function project_state1() {
+		$("#box_projects").html("");
+		loadPage(state1_count, 1);
+	}
+	//已开源的作品
+	function project_state2() {
+		$("#box_projects").html("");
+		loadPage(state2_count, 2);
+	}
+	//默认执行一次
+	project_state0();
+	//分享作品
+	function shareScratchProject(id) {
+		mdui.dialog({
+			title: '确认分享作品?',
+			content: '请确认操作',
+			cssClass: 'md3botton',
+			buttons: [{ text: '取消' }, {
+				text: '确认',
+				onClick: function (inst) {
+					AjaxFn('/my/scratch/share', { 'id': id }, function (res) {
+						mdui.snackbar(res['msg']);
+						if ('success' == res['status']) {
+							//layer.close(index);
+							//window.location.reload();
+						}
+					})
+				}
+			}]
+		});
+	};
+	function SetScratchProjectDescription(id, defaultinfo) {
+
+		// 多行文本框
+		mdui.prompt('简介', '请输入简介',
+			function (value) {
+				AjaxFn('/my/scratch/setdescription', { 'id': id, description: value }, function (res) {
+					mdui.snackbar(res['msg']);
+					if ('success' == res['status']) {
+						layer.close(index);
+						window.location.reload();
+					}
+				})
+			},
+			function (value) {
+				//mdui.alert('你输入了：' + value + '，点击了取消按钮');
+			},
+			{
+				type: 'textarea',
+				defaultValue: defaultinfo,
+				confirmText: '确认',
+				cancelText: '取消',
+				maxlength: '1000'
+
+			}
+		);
+	};
+	function noshareScratchProject(id) {
+		mdui.dialog({
+			title: '确认取消分享作品?',
+			content: '请确认操作,取消分享精选作品将自动取消精选',
+			cssClass: 'md3botton',
+			buttons: [{ text: '取消' }, {
+				text: '确认',
+				onClick: function (inst) {
+					AjaxFn('/my/scratch/noshare', { 'id': id }, function (res) {
+						mdui.snackbar(res['msg']);
+						if ('success' == res['status']) {
+							layer.close(index);
+							window.location.reload();
+						}
+					})
+				}
+			}]
+		});
+	};
+	//删除作品
+	function delProject(that, id) {
+		mdui.dialog({
+			title: '确认删除作品?',
+			content: '请确认操作',
+			cssClass: 'md3botton',
+			buttons: [{ text: '取消' }, {
+				text: '确认',
+				onClick: function (inst) {
+					AjaxFn('/my/scratch/del', { 'id': id }, function (res) {
+						mdui.snackbar(res['msg']);
+						if ('success' == res['status']) {
+							$(that).parent().parent().html("");
+							layer.close(index);
+						}
+					})
+				}
+			}]
+		});
+	};
+</script>
+
+</html>
+<style>
+	.md3botton {
+		border-radius: 15px;
+	}
+
+	.mdui-dialog-prompt {
+		border-radius: 15px;
+	}
+
+
+
+	.substr {
+		white-space: nowrap;
+		overflow: hidden;
+	}
+
+	.mdui-tooltip {
+		word-wrap: break-word;
+		word-break: break-all;
+	}
+</style>
