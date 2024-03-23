@@ -105,68 +105,51 @@ if (process.env.localstatic == "true") {
 }
 //全局变量
 global.dirname = __dirname;
+const clerk = require('@clerk/clerk-sdk-node');
 
+const clerkClient = clerk.default;
 //启动http(80端口)==================================
 http.createServer(app).listen(3000, "0.0.0.0", function () {
   console.log("Listening on http://localhost:3000");
 }); // 平台总入口
-app.all("*", function (req, res, next) {
-  //console.log(req.method +' '+ req.url + " IP:" + req.ip);
+
+async function getclerkuser(userid) {
+  const user = await clerk.users.getUser(userid);
+  console.log(user)
+  return user;
+}
+app.all("*",clerk.ClerkExpressWithAuth({}), function (req, res, next) {
+  //console.log(req.auth) 
 
   const token = req.cookies.token || req.body.token || req.headers["token"]; // 获取JWT令牌
+if (req.auth.userId){
+  console.log(req.auth.user)
 
-  if (token) {
-    jwt.verify(token, process.env.jwttoken, (err, decodedToken) => {
-      // 解析并验证JWT
-      if (err) {
-        6;
-        // 如果验证失败，清除本地登录状态
-        res.locals = {
-          login: false,
-          userid: "",
-          username: "",
-          nickname: "",
-          is_admin: 0,
-        };
-        //console.log("JWT验证失败: " + err.message);
-      } else {
+
         // 如果验证成功，将用户信息存储在res.locals和session中
-        let userInfo = decodedToken;
-        res.locals.userid = userInfo.userid;
-        res.locals.username = userInfo.username;
-        res.locals.nickname = userInfo.nickname;
+        res.locals.login= true,
+        res.locals.userid = req.auth.userId;
+        res.locals.username = '1@1.com';
+        res.locals.nickname ='1';
         res.locals["is_admin"] = 0;
-        if (userInfo.username == process.env.adminuser) {
-          res.locals["is_admin"] = 1;
-        }
+
+        
         //console.log("JWT验证成功: " + userInfo.username);
-        //console.log('调试用户信息(session)：'+res.locals.userid+','+res.locals.username+','+res.locals.nickname+','+res.locals.is_admin);
+        console.log('调试用户信息(session)：'+res.locals.userid+','+res.locals.username+','+res.locals.nickname+','+res.locals.is_admin);
 
-        res.locals = {
-          login: true,
-          userid: res.locals.userid,
-          username: res.locals.username,
-          nickname: res.locals.nickname,
-          is_admin: res.locals["is_admin"],
-        };
-
-        //console.log('调试用户信息(locals )：'+res.locals.userid+','+res.locals.username+','+res.locals.nickname+','+res.locals.is_admin);
-      }
-
-      next();
-    });
-  } else {
-    // 如果未找到token，则清除本地登录状态
-    res.locals = {
-      login: false,
-      userid: "",
-      username: "",
-      nickname: "",
-      is_admin: 0,
-    };
-    //console.log("未找到JWT Token");
-    next();
-  }
+next()
+}
+else{
+  res.locals = {
+    login: false,
+    userid: "",
+    username: "",
+    nickname: "",
+    is_admin: 0,
+  };
+  next()
+}
+//  if (token) { jwt.verify(token, process.env.jwttoken, (err, decodedToken) => { if (err) { 6; res.locals = { login: false, userid: "", username: "", nickname: "", is_admin: 0, }; } else { let userInfo = decodedToken; res.locals.userid = userInfo.userid; res.locals.username = userInfo.username; res.locals.nickname = userInfo.nickname; res.locals["is_admin"] = 0; if (userInfo.username == process.env.adminuser) { res.locals["is_admin"] = 1; } res.locals = { login: true, userid: res.locals.userid, username: res.locals.username, nickname: res.locals.nickname, is_admin: res.locals["is_admin"], }; } next(); }); } else { res.locals = { login: false, userid: "", username: "", nickname: "", is_admin: 0, }; next(); }
 });
 
 // 辅助函数：从请求头或请求体中获取JWT Token

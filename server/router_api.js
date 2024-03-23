@@ -8,6 +8,9 @@ var I = require('./lib/fuck.js');
 //数据库
 var DB = require("./lib/database.js");
 
+const clerk = require('@clerk/clerk-sdk-node');
+
+const clerkClient = clerk.default;
 //首页
 router.get("/", function (req, res) {
     //获取已分享的作品总数：1:普通作品，2：推荐的优秀作品
@@ -131,22 +134,32 @@ router.get('/usertx', function (req, res) {
       });
 });
 
-router.post("/getuserinfo", function (req, res) {
-    //获取已分享的作品总数：1:普通作品，2：推荐的优秀作品
-    
-      SQL = `SELECT id,nickname, motto FROM user WHERE id = ${req.query.id || req.body.id};`;
-  
-      DB.query(SQL, function (err, USER) {
-        if (err || USER.length == 0) {
-          res.locals.tip = { opt: "flash", msg: "用户不存在" };
-          res.render("404.ejs");
-          return;
-        }
-        res.status(200).send({status: 'ok',info:USER[0]});
-  
-      });
+router.post("/getuserinfo", async function (req, res) {
+  const userId = req.query.clerkid || req.body.clerkid || req.query.id || req.body.id;
+ 
+  const user = await clerkClient.users.getUser(userId);
+  res.status(200).send({status: 'ok',info:{id:user.id,imageUrl:user.imageUrl,nickname:user.username,motto:user.publicMetadata.motto}});
+        
+
     });
 
+router.get("/getuserinfo", async function (req, res) {
+  const userId = req.query.clerkid || req.body.clerkid || req.query.id || req.body.id;
+ 
+  const user = await clerkClient.users.getUser(userId);
+  res.status(200).send({status: 'ok',info:{id:user.id,imageUrl:user.imageUrl,nickname:user.username,motto:user.publicMetadata.motto}});
+        
+   
+      
+    });
+    
+router.get("/userclerkinfo", async function (req, res) {
+  const userId = req.query.clerkid || req.body.clerkid || req.query.id || req.body.id;
+ 
+  const user = await clerkClient.users.getUser(userId);
+  res.status(200).send({status: 'ok',info:{id:user.id,imageUrl:user.imageUrl,nickname:user.username,motto:user.publicMetadata.motto}});
+          
+        });
 //平台概况
 router.get('/info', function (req, res) {   
   var SQL = `SELECT `+

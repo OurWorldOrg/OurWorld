@@ -14,6 +14,7 @@ var pool = mysql.createPool({
 
 //防止注入：'SELECT * FROM user WHERE ?', WHERE
 exports.qww = function query_with_w(SQL, W, callback) {
+    console.log(SQL);
     pool.getConnection(function (err, connection) {
         if (err) return callback(err,'');
         
@@ -28,6 +29,7 @@ exports.qww = function query_with_w(SQL, W, callback) {
 
 //正常操作
 exports.query = function query(SQL, callback) {
+    console.log(SQL);
     pool.getConnection(function (err, connection) {
         if (err) return callback(err,'');
         

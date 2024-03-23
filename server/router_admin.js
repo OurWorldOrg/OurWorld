@@ -1001,7 +1001,7 @@ router.get('/material/sprite/worklist', function (req, res) {
         _title = ` AND title LIKE '%${req.query['t']}%' `;
     }
 
-    var SQL =`SELECT count(id) AS c FROM scratch WHERE authorid=${res.locals.userid} ${_title}`;
+    var SQL =`SELECT count(id) AS c FROM scratch WHERE authorid='${res.locals.userid}' ${_title}`;
     DB.query(SQL, function(err, count){
         if (err || count.length==0 || count[0].c==0) {
             res.status(200).send({'count':0,'data':[]});
@@ -1011,7 +1011,7 @@ router.get('/material/sprite/worklist', function (req, res) {
         //获取当前数据集合
         var page = parseInt(req.query['page']);
         var limit = parseInt(req.query['limit']);
-        var SQL =`SELECT id,title FROM scratch WHERE authorid=${res.locals.userid} ${_title} ORDER BY time DESC LIMIT ${(page-1)*limit}, ${limit}`;
+        var SQL =`SELECT id,title FROM scratch WHERE authorid='${res.locals.userid}' ${_title} ORDER BY time DESC LIMIT ${(page-1)*limit}, ${limit}`;
         DB.query(SQL, function (err, data) {
             if (err) {
                 res.status(200).send({'count':0,'data':[]});
